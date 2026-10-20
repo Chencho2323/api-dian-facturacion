@@ -1,0 +1,44 @@
+{
+    "name": "inheritdevs/api-dian-facturacion",
+    "description": "Servicio REST que arma documentos UBL 2.1, los valida contra el XSD de la DIAN, los firma y expone el estado del envio.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "dian",
+        "ubl-2-1",
+        "facturacion-electronica",
+        "colombia"
+    ],
+    "require": {
+        "php": ">=8.3",
+        "ext-dom": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo_sqlite": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "InheritDevs\\Dian\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "InheritDevs\\Dian\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=never --fail-on-empty-test-suite",
+        "lint": "find src public tests -name '*.php' -print0 | xargs -0 -n1 php -l"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

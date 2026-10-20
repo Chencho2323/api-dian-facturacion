@@ -4,6 +4,8 @@ __pycache__/
 venv/
 node_modules/
 vendor/
+.phpunit.cache/
+.phpunit.result.cache
 *.db
 *.sqlite
 *.sqlite3

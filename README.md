@@ -23,28 +23,45 @@ produccion. El codigo esta aqui para que se pueda leer, ejecutar y auditar.
 ```bash
 git clone https://github.com/Chencho2323/api-dian-facturacion.git
 cd api-dian-facturacion
+composer install
 ```
 
-Los comandos exactos de instalacion y ejecucion estan en la seccion siguiente.
+Requiere PHP 8.3 o superior con las extensiones `dom`, `json`, `libxml`,
+`mbstring`, `openssl` y `pdo_sqlite`.
 
 ## Uso
 
-La aplicacion expone su funcionalidad por linea de comandos o por HTTP, segun
-el caso. Los ejemplos concretos estan en `docs/` o en el `README` ampliado de
-cada version.
+Por ahora el servicio expone su estado y comprueba que la maquina cumple con
+los requisitos minimos para facturar:
+
+```bash
+php -r "require 'vendor/autoload.php'; var_export(InheritDevs\Dian\Servicio::iniciar());"
+```
+
+La capa HTTP vive en `public/index.php`:
+
+```bash
+php -S localhost:8080 -t public
+```
 
 ## Pruebas
 
 ```bash
-# el comando exacto lo declara el proyecto; ver AGENTS.md
+composer test
+```
+
+O, con el binario de Composer ya instalado:
+
+```bash
+vendor/bin/phpunit
 ```
 
 ## Estructura
 
 ```
-src/        codigo de la aplicacion
-test(s)/    pruebas automaticas
-docs/       documentacion de uso
+src/        codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
+public/     punto de entrada HTTP
+tests/      pruebas automaticas (PHPUnit)
 ```
 
 ## Licencia
