@@ -17,7 +17,7 @@ final class Servicio
 {
     /**
      * Modulos que el servicio ya tiene construidos, en orden de aparicion.
-     * Cada tarea de TAREAS.md agrega aqui el modulo que le corresponde.
+     * Cada modulo nuevo se agrega aqui en orden de aparicion.
      *
      * @var list<string>
      */
