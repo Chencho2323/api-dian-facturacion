@@ -31,8 +31,65 @@ Requiere PHP 8.3 o superior con las extensiones `dom`, `json`, `libxml`,
 
 ## Uso
 
-Por ahora el servicio expone su estado y comprueba que la maquina cumple con
-los requisitos minimos para facturar:
+Arma una factura UBL 2.1 con dos lineas, una gravada al 19 % y otra al 5 %:
+
+```php
+use InheritDevs\Dian\Documento\DocumentoUbl;
+use InheritDevs\Dian\Documento\Linea;
+use InheritDevs\Dian\Documento\Resolucion;
+use InheritDevs\Dian\Documento\Tercero;
+use InheritDevs\Dian\Documento\TipoDocumento;
+
+$documento = new DocumentoUbl(
+    TipoDocumento::Factura,
+    'FV-0001',
+    new DateTimeImmutable('2026-10-22 09:30:00'),
+    new Tercero('900123456', 'InheritDevs SAS', '48'),
+    new Tercero('800987654', 'Almacen El Progreso SAS', '49'),
+    [
+        new Linea('Servicio de desarrollo', 2, 12500000, 19),
+        new Linea('Soporte mensual', 1, 4000000, 5, 'MON'),
+    ],
+    new Resolucion(
+        '18760000001',
+        'FV',
+        1,
+        5000,
+        new DateTimeImmutable('2026-01-01'),
+        new DateTimeImmutable('2027-01-01'),
+        'clave-tecnica'
+    )
+);
+
+file_put_contents('factura.xml', $documento->xml());
+```
+
+Las notas credito y debito usan la misma clase con `TipoDocumento::NotaCredito` o
+`TipoDocumento::NotaDebito`, y exigen el numero del documento que ajustan y el motivo:
+
+```php
+$nota = new DocumentoUbl(
+    TipoDocumento::NotaCredito,
+    'FV-0100',
+    new DateTimeImmutable('2026-10-22 10:15:00'),
+    $emisor,
+    $adquirente,
+    [new Linea('Devolucion de servicio', 1, 5000000, 19)],
+    $resolucion,
+    DocumentoUbl::AMBIENTE_PRUEBAS,
+    'COP',
+    'FV-0001',
+    'Devolucion parcial',
+    '5'
+);
+```
+
+Los dineros se manejan en centavos enteros y el documento los publica con dos decimales. El
+emisor en regimen no responsable de IVA no puede emitir documentos que cobren IVA; el numero debe
+llevar el prefijo de la resolucion y caer dentro del rango autorizado.
+
+Ademas el servicio expone su estado y comprueba que la maquina cumple con los requisitos minimos
+para facturar:
 
 ```bash
 php -r "require 'vendor/autoload.php'; var_export(InheritDevs\Dian\Servicio::iniciar());"
@@ -59,9 +116,10 @@ vendor/bin/phpunit
 ## Estructura
 
 ```
-src/        codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
-public/     punto de entrada HTTP
-tests/      pruebas automaticas (PHPUnit)
+src/            codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
+src/Documento/  modelo del documento UBL 2.1: factura, nota credito y nota debito
+public/         punto de entrada HTTP
+tests/          pruebas automaticas (PHPUnit)
 ```
 
 ## Licencia
