@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Esquema del documento Invoice del perfil de facturacion electronica 2.1.
+
+  Fija el orden de los elementos de la cabecera, los bloques obligatorios y las
+  lineas de la factura. Las notas credito y debito tienen su propio archivo
+  porque cambian el nombre del elemento raiz y el de la cantidad de la linea.
+  Los bloques agregados viven en cac-2.1.xsd y se referencian con el prefijo.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+           xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+             schemaLocation="cbc-2.1.xsd"/>
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+             schemaLocation="cac-2.1.xsd"/>
+
+  <xs:element name="Invoice">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="cac:UBLExtensions"/>
+        <xs:element ref="cbc:UBLVersionID"/>
+        <xs:element ref="cbc:CustomizationID"/>
+        <xs:element ref="cbc:ProfileID"/>
+        <xs:element ref="cbc:ProfileExecutionID"/>
+        <xs:element ref="cbc:ID"/>
+        <xs:element ref="cbc:UUID"/>
+        <xs:element ref="cbc:IssueDate"/>
+        <xs:element ref="cbc:IssueTime"/>
+        <xs:element ref="cbc:DocumentCurrencyCode"/>
+        <xs:element ref="cbc:LineCountNumeric"/>
+        <xs:element ref="cac:AccountingSupplierParty"/>
+        <xs:element ref="cac:AccountingCustomerParty"/>
+        <xs:element ref="cac:LegalMonetaryTotal"/>
+        <xs:element ref="cac:TaxTotal"/>
+        <xs:element ref="cac:InvoiceLine" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

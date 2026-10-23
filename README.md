@@ -88,6 +88,30 @@ Los dineros se manejan en centavos enteros y el documento los publica con dos de
 emisor en regimen no responsable de IVA no puede emitir documentos que cobren IVA; el numero debe
 llevar el prefijo de la resolucion y caer dentro del rango autorizado.
 
+## Validacion contra el esquema
+
+Antes de firmar, el documento se valida contra los XSD del perfil 2.1, que viven en
+`recursos/xsd`. El resultado trae los errores ya traducidos, con la linea, el elemento y que
+esperaba el esquema:
+
+```php
+use InheritDevs\Dian\Validacion\ValidadorXsd;
+
+$resultado = (new ValidadorXsd())->validarDocumento($documento);
+
+echo $resultado->reporte();
+```
+
+Un documento invalido devuelve un reporte asi:
+
+```
+El documento tiene 1 error(es) frente al esquema.
+- linea 24, columna 0: El elemento UBLVersionID no admite el valor "2.0". Valores permitidos: 2.1.
+```
+
+El resultado se puede entregar tal cual en la respuesta HTTP: `valido`, `resumen` y la lista de
+`errores` con su `linea`, `columna`, `codigo` y `mensaje`.
+
 Ademas el servicio expone su estado y comprueba que la maquina cumple con los requisitos minimos
 para facturar:
 
@@ -118,6 +142,8 @@ vendor/bin/phpunit
 ```
 src/            codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
 src/Documento/  modelo del documento UBL 2.1: factura, nota credito y nota debito
+src/Validacion/ validador contra los XSD del perfil y reporte de errores
+recursos/xsd/   esquemas del perfil 2.1: cabecera, agregados, extensiones y cada documento
 public/         punto de entrada HTTP
 tests/          pruebas automaticas (PHPUnit)
 ```

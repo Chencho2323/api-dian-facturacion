@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Esquema del documento DebitNote del perfil de facturacion electronica 2.1.
+
+  Misma estructura que la nota credito, con la cantidad de la linea declarada
+  como DebitedQuantity.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:oasis:names:specification:ubl:schema:xsd:DebitNote-2"
+           xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+             schemaLocation="cbc-2.1.xsd"/>
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+             schemaLocation="cac-2.1.xsd"/>
+
+  <xs:element name="DebitNote">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="cac:UBLExtensions"/>
+        <xs:element ref="cbc:UBLVersionID"/>
+        <xs:element ref="cbc:CustomizationID"/>
+        <xs:element ref="cbc:ProfileID"/>
+        <xs:element ref="cbc:ProfileExecutionID"/>
+        <xs:element ref="cbc:ID"/>
+        <xs:element ref="cbc:UUID"/>
+        <xs:element ref="cbc:IssueDate"/>
+        <xs:element ref="cbc:IssueTime"/>
+        <xs:element ref="cbc:DocumentCurrencyCode"/>
+        <xs:element ref="cbc:LineCountNumeric"/>
+        <xs:element ref="cac:DiscrepancyResponse"/>
+        <xs:element ref="cac:BillingReference"/>
+        <xs:element ref="cac:AccountingSupplierParty"/>
+        <xs:element ref="cac:AccountingCustomerParty"/>
+        <xs:element ref="cac:LegalMonetaryTotal"/>
+        <xs:element ref="cac:TaxTotal"/>
+        <xs:element ref="cac:DebitNoteLine" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

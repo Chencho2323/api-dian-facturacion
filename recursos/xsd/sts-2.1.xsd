@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Extensiones propias de la DIAN para el perfil 2.1.
+
+  Solo se declara el bloque que el servicio emite: el control de la factura
+  (resolucion, vigencia y rango autorizado) y el UUID del documento.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="dian:gov:co:facturaelectronica:Structures-2-1"
+           xmlns="dian:gov:co:facturaelectronica:Structures-2-1"
+           xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+             schemaLocation="cbc-2.1.xsd"/>
+
+  <xs:complexType name="PeriodoDeAutorizacion">
+    <xs:sequence>
+      <xs:element ref="cbc:StartDate"/>
+      <xs:element ref="cbc:EndDate"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="FacturasAutorizadas">
+    <xs:sequence>
+      <xs:element name="Prefix" type="xs:string" minOccurs="0"/>
+      <xs:element name="From" type="xs:positiveInteger"/>
+      <xs:element name="To" type="xs:positiveInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ControlDeFactura">
+    <xs:sequence>
+      <xs:element name="InvoiceAuthorization" type="xs:string"/>
+      <xs:element name="AuthorizationPeriod" type="PeriodoDeAutorizacion"/>
+      <xs:element name="AuthorizedInvoices" type="FacturasAutorizadas"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ExtensionesDian">
+    <xs:sequence>
+      <xs:element name="InvoiceControl" type="ControlDeFactura"/>
+      <xs:element name="UUID" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="DianExtensions" type="ExtensionesDian"/>
+
+</xs:schema>

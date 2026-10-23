@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Componentes agregados del perfil de facturacion electronica 2.1.
+
+  Declara los bloques que el documento lleva despues de la cabecera:
+  extensiones de la DIAN, partes, totales y lineas. Los esquemas de cada tipo
+  de documento (Invoice-2.xsd, CreditNote-2.xsd y DebitNote-2.xsd) los
+  referencian, porque viajan con el prefijo cac.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+           xmlns="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+           xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <xs:import namespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+             schemaLocation="cbc-2.1.xsd"/>
+  <xs:import namespace="dian:gov:co:facturaelectronica:Structures-2-1"
+             schemaLocation="sts-2.1.xsd"/>
+
+  <!-- Esquema tributario: codigo y nombre del impuesto. -->
+  <xs:complexType name="EsquemaTributario">
+    <xs:sequence>
+      <xs:element ref="cbc:ID"/>
+      <xs:element ref="cbc:Name" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Direccion">
+    <xs:sequence>
+      <xs:element ref="cbc:StreetName" minOccurs="0"/>
+      <xs:element ref="cbc:CityName" minOccurs="0"/>
+      <xs:element ref="cbc:CountrySubentity" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Ubicacion">
+    <xs:sequence>
+      <xs:element name="Address" type="Direccion"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RegimenTributario">
+    <xs:sequence>
+      <xs:element name="TaxScheme" type="EsquemaTributario"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Parte">
+    <xs:sequence>
+      <xs:element name="PartyIdentification">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="cbc:ID"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="PartyName">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="cbc:Name"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element ref="cbc:RegistrationName"/>
+      <xs:element name="PartyTaxScheme" type="RegimenTributario"/>
+      <xs:element name="PhysicalLocation" type="Ubicacion" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ParteDelDocumento">
+    <xs:sequence>
+      <xs:element name="Party" type="Parte"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ExtensionesDian">
+    <xs:sequence>
+      <xs:element name="UBLExtension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="ExtensionContent">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="sts:DianExtensions"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CategoriaDeImpuesto">
+    <xs:sequence>
+      <xs:element ref="cbc:Percent"/>
+      <xs:element name="TaxScheme" type="EsquemaTributario"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SubtotalDeImpuesto">
+    <xs:sequence>
+      <xs:element ref="cbc:TaxableAmount"/>
+      <xs:element ref="cbc:TaxAmount"/>
+      <xs:element name="TaxCategory" type="CategoriaDeImpuesto"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TotalDeImpuestos">
+    <xs:sequence>
+      <xs:element ref="cbc:TaxAmount"/>
+      <xs:element name="TaxSubtotal" type="SubtotalDeImpuesto" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="TotalMonetario">
+    <xs:sequence>
+      <xs:element ref="cbc:LineExtensionAmount"/>
+      <xs:element ref="cbc:TaxExclusiveAmount" minOccurs="0"/>
+      <xs:element ref="cbc:TaxInclusiveAmount" minOccurs="0"/>
+      <xs:element ref="cbc:PayableAmount"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Item">
+    <xs:sequence>
+      <xs:element ref="cbc:Description"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Precio">
+    <xs:sequence>
+      <xs:element ref="cbc:PriceAmount"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Cuerpo comun de una linea: cambia solo el elemento de la cantidad. -->
+  <xs:group name="CuerpoDeLinea">
+    <xs:sequence>
+      <xs:element ref="cbc:LineExtensionAmount"/>
+      <xs:element ref="TaxTotal" minOccurs="0"/>
+      <xs:element ref="Item"/>
+      <xs:element ref="Price"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:complexType name="LineaDeFactura">
+    <xs:sequence>
+      <xs:element ref="cbc:ID"/>
+      <xs:element ref="cbc:Note" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="cbc:InvoicedQuantity"/>
+      <xs:group ref="CuerpoDeLinea"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LineaDeNotaCredito">
+    <xs:sequence>
+      <xs:element ref="cbc:ID"/>
+      <xs:element ref="cbc:Note" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="cbc:CreditedQuantity"/>
+      <xs:group ref="CuerpoDeLinea"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LineaDeNotaDebito">
+    <xs:sequence>
+      <xs:element ref="cbc:ID"/>
+      <xs:element ref="cbc:Note" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element ref="cbc:DebitedQuantity"/>
+      <xs:group ref="CuerpoDeLinea"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RespuestaDeDiscrepancia">
+    <xs:sequence>
+      <xs:element ref="cbc:ReferenceID"/>
+      <xs:element ref="cbc:ResponseCode"/>
+      <xs:element ref="cbc:Description"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReferenciaAFactura">
+    <xs:sequence>
+      <xs:element ref="cbc:ID"/>
+      <xs:element ref="cbc:DocumentTypeCode"/>
+      <xs:element ref="cbc:DocumentType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReferenciaDeFacturacion">
+    <xs:sequence>
+      <xs:element name="InvoiceDocumentReference" type="ReferenciaAFactura"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Elementos globales: los documentos los usan con el prefijo cac. -->
+  <xs:element name="UBLExtensions" type="ExtensionesDian"/>
+  <xs:element name="AccountingSupplierParty" type="ParteDelDocumento"/>
+  <xs:element name="AccountingCustomerParty" type="ParteDelDocumento"/>
+  <xs:element name="LegalMonetaryTotal" type="TotalMonetario"/>
+  <xs:element name="TaxTotal" type="TotalDeImpuestos"/>
+  <xs:element name="Item" type="Item"/>
+  <xs:element name="Price" type="Precio"/>
+  <xs:element name="DiscrepancyResponse" type="RespuestaDeDiscrepancia"/>
+  <xs:element name="BillingReference" type="ReferenciaDeFacturacion"/>
+  <xs:element name="InvoiceLine" type="LineaDeFactura"/>
+  <xs:element name="CreditNoteLine" type="LineaDeNotaCredito"/>
+  <xs:element name="DebitNoteLine" type="LineaDeNotaDebito"/>
+
+</xs:schema>

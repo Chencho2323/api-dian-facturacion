@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Componentes basicos del perfil de facturacion electronica 2.1.
+
+  Declara los elementos de cabecera y los valores monetarios que el perfil
+  exige, con las restricciones que no admiten variacion: version de UBL,
+  version del perfil, codigo de operacion y ambiente de ejecucion.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           xmlns="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+  <!-- Version de UBL que se acepta: solo 2.1. -->
+  <xs:simpleType name="VersionUbl">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="2.1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Codigo de operacion: 10 factura, 20 nota credito, 30 nota debito. -->
+  <xs:simpleType name="CodigoOperacion">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="10"/>
+      <xs:enumeration value="20"/>
+      <xs:enumeration value="30"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Version del anexo tecnico que se implementa. -->
+  <xs:simpleType name="VersionPerfil">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="2.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Ambiente de la DIAN: 1 produccion, 2 pruebas. -->
+  <xs:simpleType name="AmbienteEjecucion">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="1"/>
+      <xs:enumeration value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- CUFE o CUDE: 64 o 96 caracteres hexadecimales. -->
+  <xs:simpleType name="IdentificadorUuid">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9A-Fa-f]{64}|[0-9A-Fa-f]{96}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Codigo ISO de tres letras mayusculas. -->
+  <xs:simpleType name="CodigoMoneda">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]{3}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Numero del documento con su prefijo. -->
+  <xs:simpleType name="NumeroDocumento">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="60"/>
+      <xs:pattern value="[A-Za-z0-9\-_. ]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Valor monetario: siempre lleva la moneda del documento. -->
+  <xs:complexType name="Importe">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="currencyID" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- Cantidad de una linea, con su unidad de medida. -->
+  <xs:complexType name="Cantidad">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="unitCode" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- Numero con el esquema de identificacion opcional. -->
+  <xs:complexType name="IdentificadorConEsquema">
+    <xs:simpleContent>
+      <xs:extension base="NumeroDocumento">
+        <xs:attribute name="schemeID" type="xs:string" use="optional"/>
+        <xs:attribute name="schemeName" type="xs:string" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <!-- Cabecera del documento. -->
+  <xs:element name="UBLVersionID" type="VersionUbl"/>
+  <xs:element name="CustomizationID" type="CodigoOperacion"/>
+  <xs:element name="ProfileID" type="VersionPerfil"/>
+  <xs:element name="ProfileExecutionID" type="AmbienteEjecucion"/>
+  <!--
+    Numero del documento. En la identificacion de un tercero lleva ademas el
+    tipo de documento en schemeID y su nombre en schemeName.
+  -->
+  <xs:element name="ID" type="IdentificadorConEsquema"/>
+  <xs:element name="UUID" type="IdentificadorUuid"/>
+  <xs:element name="IssueDate" type="xs:date"/>
+  <xs:element name="IssueTime" type="xs:time"/>
+  <xs:element name="DocumentCurrencyCode" type="CodigoMoneda"/>
+  <xs:element name="LineCountNumeric" type="xs:positiveInteger"/>
+
+  <!-- Datos de las partes. -->
+  <xs:element name="Name" type="xs:string"/>
+  <xs:element name="RegistrationName" type="xs:string"/>
+  <xs:element name="StreetName" type="xs:string"/>
+  <xs:element name="CityName" type="xs:string"/>
+  <xs:element name="CountrySubentity" type="xs:string"/>
+
+  <!-- Contenido de las lineas. -->
+  <xs:element name="Note" type="xs:string"/>
+  <xs:element name="Description" type="xs:string"/>
+  <xs:element name="InvoicedQuantity" type="Cantidad"/>
+  <xs:element name="CreditedQuantity" type="Cantidad"/>
+  <xs:element name="DebitedQuantity" type="Cantidad"/>
+  <xs:element name="LineExtensionAmount" type="Importe"/>
+  <xs:element name="PriceAmount" type="Importe"/>
+  <xs:element name="TaxableAmount" type="Importe"/>
+  <xs:element name="TaxAmount" type="Importe"/>
+  <xs:element name="TaxExclusiveAmount" type="Importe"/>
+  <xs:element name="TaxInclusiveAmount" type="Importe"/>
+  <xs:element name="PayableAmount" type="Importe"/>
+  <xs:element name="Percent" type="xs:decimal"/>
+
+  <!-- Referencia al documento que se ajusta con una nota. -->
+  <xs:element name="ReferenceID" type="NumeroDocumento"/>
+  <xs:element name="ResponseCode" type="xs:string"/>
+  <xs:element name="DocumentTypeCode" type="xs:string"/>
+  <xs:element name="DocumentType" type="xs:string"/>
+
+  <!-- Vigencia de la resolucion de facturacion. -->
+  <xs:element name="StartDate" type="xs:date"/>
+  <xs:element name="EndDate" type="xs:date"/>
+
+</xs:schema>
