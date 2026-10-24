@@ -88,6 +88,33 @@ Los dineros se manejan en centavos enteros y el documento los publica con dos de
 emisor en regimen no responsable de IVA no puede emitir documentos que cobren IVA; el numero debe
 llevar el prefijo de la resolucion y caer dentro del rango autorizado.
 
+## Sujetos y regimenes
+
+El regimen tributario se valida contra el catalogo de la DIAN (`48` responsable de IVA, `49` no
+responsable y `04` regimen simple). El NIT admite puntos y guion, y el digito de verificacion se
+calcula con el algoritmo oficial; si llega un digito equivocado, el sujeto se rechaza:
+
+```php
+use InheritDevs\Dian\Catalogo\CatalogoRegimenes;
+use InheritDevs\Dian\Catalogo\Nit;
+use InheritDevs\Dian\Sujeto\RegistroSujetos;
+
+$nit = Nit::desde('900.123.456');      // tambien acepta '900123456-8'
+echo $nit->formateado();               // 900.123.456-8
+
+echo CatalogoRegimenes::obtener('04')->nombre();  // Regimen simple de tributacion
+
+$registro = RegistroSujetos::vacio()
+    ->agregar($emisor)
+    ->guardar($cliente);
+
+$sujeto = $registro->resolver('9001234568');  // sin importar como se escriba el NIT
+```
+
+`resolver()` lanza `SujetoNoEncontrado`, con el NIT buscado y la lista de sujetos cargados;
+`buscar()` devuelve `null`. El registro indexa por NIT completo, asi que dos formas del mismo
+numero resuelven al mismo sujeto y el mismo NIT no se puede registrar dos veces.
+
 ## Validacion contra el esquema
 
 Antes de firmar, el documento se valida contra los XSD del perfil 2.1, que viven en
@@ -141,6 +168,8 @@ vendor/bin/phpunit
 
 ```
 src/            codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
+src/Catalogo/   catalogo de regimenes de la DIAN y NIT con digito de verificacion
+src/Sujeto/     registro de sujetos que resuelve emisor y adquirente por NIT
 src/Documento/  modelo del documento UBL 2.1: factura, nota credito y nota debito
 src/Validacion/ validador contra los XSD del perfil y reporte de errores
 recursos/xsd/   esquemas del perfil 2.1: cabecera, agregados, extensiones y cada documento

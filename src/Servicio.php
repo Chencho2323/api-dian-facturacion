@@ -25,6 +25,7 @@ final class Servicio
         'proyecto',
         'documento-ubl',
         'validador-xsd',
+        'sujetos',
     ];
 
     /**

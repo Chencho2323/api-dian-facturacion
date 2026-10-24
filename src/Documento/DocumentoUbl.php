@@ -626,14 +626,16 @@ final class DocumentoUbl
             );
         }
 
-        if ($this->emisor->identificacion() === $this->adquirente->identificacion()) {
+        if ($this->emisor->clave() === $this->adquirente->clave()) {
             throw new DocumentoInvalido('El emisor y el adquirente no pueden ser el mismo sujeto.');
         }
 
-        if ($this->emisor->regimen() === '49' && $this->ivaCentavos() > 0) {
-            throw new DocumentoInvalido(
-                'El emisor esta en el regimen no responsable de IVA y el documento cobra IVA.'
-            );
+        if (!$this->emisor->cobraIva() && $this->ivaCentavos() > 0) {
+            throw new DocumentoInvalido(sprintf(
+                'El emisor esta en el regimen "%s" (%s) y el documento cobra IVA: un regimen no responsable de IVA no puede discriminarlo.',
+                $this->emisor->nombreRegimen(),
+                $this->emisor->regimen()
+            ));
         }
 
         $this->validarConsecutivo();
