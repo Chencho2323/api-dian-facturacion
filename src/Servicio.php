@@ -24,6 +24,7 @@ final class Servicio
     private const MODULOS = [
         'proyecto',
         'documento-ubl',
+        'calculo',
         'validador-xsd',
         'sujetos',
     ];

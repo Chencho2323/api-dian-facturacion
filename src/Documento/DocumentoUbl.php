@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace InheritDevs\Dian\Documento;
 
 use DateTimeImmutable;
+use InheritDevs\Dian\Calculo\Redondeo;
+use InheritDevs\Dian\Calculo\Retencion;
+use InheritDevs\Dian\Calculo\Totales;
 use InheritDevs\Dian\Excepcion\DocumentoInvalido;
 use RuntimeException;
 
@@ -15,8 +18,8 @@ use RuntimeException;
  * Arma el XML con los espacios de nombres de UBL, los datos del emisor y del
  * adquirente, las lineas, los totales y el bloque `DianExtensions` con el
  * UUID, la resolucion de facturacion y la referencia al documento que se
- * ajusta. No calcula retenciones ni valida contra el XSD: esas tareas llegan
- * despues.
+ * ajusta. Los dineros los suma `Totales`, que aplica los redondeos del
+ * protocolo y descuenta las retenciones del valor a pagar.
  */
 final class DocumentoUbl
 {
@@ -48,6 +51,9 @@ final class DocumentoUbl
     public const TIPO_REFERENCIA_NOTA_CREDITO = '02';
     public const TIPO_REFERENCIA_NOTA_DEBITO = '03';
 
+    /** Totales del documento, calculados una sola vez. */
+    private readonly Totales $totales;
+
     /**
      * @param TipoDocumento     $tipo            Tipo de documento a emitir.
      * @param string            $numero          Numero completo con prefijo.
@@ -62,6 +68,7 @@ final class DocumentoUbl
      * @param string|null       $motivoAjuste      Motivo de la nota credito o debito.
      * @param string|null       $motivoCodigo      Codigo de correccion de la DIAN.
      * @param string|null       $uuid              CUFE o CUDE ya calculado.
+     * @param list<Retencion>   $retenciones     Retenciones que practica el adquirente.
      */
     public function __construct(
         private readonly TipoDocumento $tipo,
@@ -77,7 +84,9 @@ final class DocumentoUbl
         private readonly ?string $motivoAjuste = null,
         private readonly ?string $motivoCodigo = null,
         private readonly ?string $uuid = null,
+        array $retenciones = [],
     ) {
+        $this->totales = new Totales($lineas, $retenciones);
         $this->validar();
     }
 
@@ -140,17 +149,29 @@ final class DocumentoUbl
     }
 
     /**
+     * Retenciones que practica el adquirente sobre este documento.
+     *
+     * @return list<Retencion>
+     */
+    public function retenciones(): array
+    {
+        return $this->totales->retenciones();
+    }
+
+    /**
+     * Calculo completo de los totales: subtotal, IVA, retenciones y saldo.
+     */
+    public function totales(): Totales
+    {
+        return $this->totales;
+    }
+
+    /**
      * Suma de las lineas sin impuestos.
      */
     public function subtotalCentavos(): int
     {
-        $total = 0;
-
-        foreach ($this->lineas as $linea) {
-            $total += $linea->subtotalCentavos();
-        }
-
-        return $total;
+        return $this->totales->subtotalCentavos();
     }
 
     /**
@@ -158,13 +179,7 @@ final class DocumentoUbl
      */
     public function ivaCentavos(): int
     {
-        $total = 0;
-
-        foreach ($this->lineas as $linea) {
-            $total += $linea->ivaCentavos();
-        }
-
-        return $total;
+        return $this->totales->ivaCentavos();
     }
 
     /**
@@ -172,7 +187,23 @@ final class DocumentoUbl
      */
     public function totalCentavos(): int
     {
-        return $this->subtotalCentavos() + $this->ivaCentavos();
+        return $this->totales->totalCentavos();
+    }
+
+    /**
+     * Suma de las retenciones practicadas.
+     */
+    public function retencionesCentavos(): int
+    {
+        return $this->totales->retencionesCentavos();
+    }
+
+    /**
+     * Valor a pagar: total con impuestos menos retenciones.
+     */
+    public function aPagarCentavos(): int
+    {
+        return $this->totales->aPagarCentavos();
     }
 
     /**
@@ -182,21 +213,7 @@ final class DocumentoUbl
      */
     public function basesPorTarifa(): array
     {
-        $bases = [];
-
-        foreach ($this->lineas as $linea) {
-            $tarifa = $linea->tarifaIva();
-
-            if ($tarifa === 0) {
-                continue;
-            }
-
-            $bases[$tarifa] = ($bases[$tarifa] ?? 0) + $linea->subtotalCentavos();
-        }
-
-        ksort($bases);
-
-        return $bases;
+        return $this->totales->basesPorTarifa();
     }
 
     /**
@@ -206,21 +223,7 @@ final class DocumentoUbl
      */
     public function ivaPorTarifa(): array
     {
-        $impuestos = [];
-
-        foreach ($this->lineas as $linea) {
-            $tarifa = $linea->tarifaIva();
-
-            if ($tarifa === 0) {
-                continue;
-            }
-
-            $impuestos[$tarifa] = ($impuestos[$tarifa] ?? 0) + $linea->ivaCentavos();
-        }
-
-        ksort($impuestos);
-
-        return $impuestos;
+        return $this->totales->ivaPorTarifa();
     }
 
     /**
@@ -319,7 +322,7 @@ final class DocumentoUbl
             $this->fechaEmision->format('YmdHis'),
             $this->emisor->identificacion(),
             $this->adquirente->identificacion(),
-            (string) $this->totalCentavos(),
+            (string) $this->aPagarCentavos(),
         ]);
 
         return strtoupper(hash('sha256', $semilla));
@@ -478,29 +481,63 @@ final class DocumentoUbl
             $this->agregarMoneda($dom, $monetario, 'TaxInclusiveAmount', $this->totalCentavos());
         }
 
-        $this->agregarMoneda($dom, $monetario, 'PayableAmount', $this->totalCentavos());
+        $this->agregarMoneda($dom, $monetario, 'PayableAmount', $this->aPagarCentavos());
 
         $impuestoTotal = $dom->createElementNS(self::NS_CAC, 'cac:TaxTotal');
         $raiz->appendChild($impuestoTotal);
         $this->agregarMoneda($dom, $impuestoTotal, 'TaxAmount', $this->ivaCentavos());
 
-        $bases = $this->basesPorTarifa();
-        $impuestos = $this->ivaPorTarifa();
-
-        foreach ($impuestos as $tarifa => $valor) {
+        foreach ($this->totales->desgloseIva() as $tarifa => $fila) {
             $subtotal = $dom->createElementNS(self::NS_CAC, 'cac:TaxSubtotal');
             $impuestoTotal->appendChild($subtotal);
-            $this->agregarMoneda($dom, $subtotal, 'TaxableAmount', $bases[$tarifa] ?? 0);
-            $this->agregarMoneda($dom, $subtotal, 'TaxAmount', $valor);
+            $this->agregarMoneda($dom, $subtotal, 'TaxableAmount', $fila['base']);
+            $this->agregarMoneda($dom, $subtotal, 'TaxAmount', $fila['iva']);
 
             $categoria = $dom->createElementNS(self::NS_CAC, 'cac:TaxCategory');
             $subtotal->appendChild($categoria);
-            $this->agregar($dom, $categoria, self::NS_CBC, 'Percent', (string) $tarifa);
+            $this->agregar(
+                $dom,
+                $categoria,
+                self::NS_CBC,
+                'Percent',
+                Redondeo::porcentaje($tarifa * Redondeo::PARTES_POR_PUNTO)
+            );
 
             $esquema = $dom->createElementNS(self::NS_CAC, 'cac:TaxScheme');
             $categoria->appendChild($esquema);
             $this->agregar($dom, $esquema, self::NS_CBC, 'ID', '01');
             $this->agregar($dom, $esquema, self::NS_CBC, 'Name', 'IVA');
+        }
+
+        $this->agregarRetenciones($dom, $raiz);
+    }
+
+    /**
+     * Un `WithholdingTaxTotal` por retencion practicada, con su base y su
+     * valor ya redondeados. Si el documento no retiene nada, no hay bloque.
+     */
+    private function agregarRetenciones(\DOMDocument $dom, \DOMElement $raiz): void
+    {
+        foreach ($this->totales->retenciones() as $retencion) {
+            $valor = $this->totales->valorDe($retencion);
+
+            $total = $dom->createElementNS(self::NS_CAC, 'cac:WithholdingTaxTotal');
+            $raiz->appendChild($total);
+            $this->agregarMoneda($dom, $total, 'TaxAmount', $valor);
+
+            $subtotal = $dom->createElementNS(self::NS_CAC, 'cac:TaxSubtotal');
+            $total->appendChild($subtotal);
+            $this->agregarMoneda($dom, $subtotal, 'TaxableAmount', $this->totales->baseDe($retencion));
+            $this->agregarMoneda($dom, $subtotal, 'TaxAmount', $valor);
+
+            $categoria = $dom->createElementNS(self::NS_CAC, 'cac:TaxCategory');
+            $subtotal->appendChild($categoria);
+            $this->agregar($dom, $categoria, self::NS_CBC, 'Percent', $retencion->tarifaTexto());
+
+            $esquema = $dom->createElementNS(self::NS_CAC, 'cac:TaxScheme');
+            $categoria->appendChild($esquema);
+            $this->agregar($dom, $esquema, self::NS_CBC, 'ID', $retencion->tipo()->codigo());
+            $this->agregar($dom, $esquema, self::NS_CBC, 'Name', $retencion->tipo()->nombre());
         }
     }
 

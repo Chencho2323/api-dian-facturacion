@@ -115,6 +115,57 @@ $sujeto = $registro->resolver('9001234568');  // sin importar como se escriba el
 `buscar()` devuelve `null`. El registro indexa por NIT completo, asi que dos formas del mismo
 numero resuelven al mismo sujeto y el mismo NIT no se puede registrar dos veces.
 
+## IVA, retenciones y totales
+
+Los totales los calcula `Totales`, no el documento. Redondea como el anexo tecnico: primero cada
+linea a su centavo y despues la suma. Redondear el total de golpe produce centavos que la linea no
+declara y la DIAN rechaza esa diferencia.
+
+```php
+use InheritDevs\Dian\Calculo\Retencion;
+use InheritDevs\Dian\Calculo\TipoRetencion;
+use InheritDevs\Dian\Calculo\Totales;
+
+$documento = new DocumentoUbl(
+    TipoDocumento::Factura,
+    'FV-0002',
+    new DateTimeImmutable('2026-10-22 09:30:00'),
+    $emisor,
+    $adquirente,
+    [new Linea('Servicio de desarrollo', 2, 12500000, 19)],
+    $resolucion,
+    DocumentoUbl::AMBIENTE_PRODUCCION,
+    'COP',
+    null,
+    null,
+    null,
+    null,
+    [
+        new Retencion(TipoRetencion::Fuente, 2.5),
+        new Retencion(TipoRetencion::Iva, 15),
+    ]
+);
+
+$documento->totalCentavos();        // 29750000, con IVA
+$documento->retencionesCentavos();  // 1337500
+$documento->aPagarCentavos();       // 28412500, lo que va en PayableAmount
+```
+
+Las tarifas se guardan en partes por millon, asi el 0,966 % del ICA cabe exacto. `TipoRetencion`
+decide la base: renta e ICA se calculan sobre el subtotal, IVA sobre el IVA del documento. Cada
+retencion sale en el XML como un `cac:WithholdingTaxTotal` con su base, su valor y el codigo del
+impuesto. Para consultar el desglose sin el XML:
+
+```php
+$totales = $documento->totales();
+
+$totales->desgloseIva();  // [5 => ['base' => ..., 'iva' => ...], 19 => [...]]
+$totales->resumen();      // subtotal, iva, total, retenciones, aPagar e ivaPorTarifa
+```
+
+Un documento sin lineas, una retencion de IVA sobre un documento que no cobra IVA o unas
+retenciones que superan el total se rechazan con `DocumentoInvalido`.
+
 ## Validacion contra el esquema
 
 Antes de firmar, el documento se valida contra los XSD del perfil 2.1, que viven en
@@ -171,6 +222,7 @@ src/            codigo de la aplicacion (PSR-4, prefijo InheritDevs\Dian\)
 src/Catalogo/   catalogo de regimenes de la DIAN y NIT con digito de verificacion
 src/Sujeto/     registro de sujetos que resuelve emisor y adquirente por NIT
 src/Documento/  modelo del documento UBL 2.1: factura, nota credito y nota debito
+src/Calculo/    IVA, retenciones, redondeos y totales del documento
 src/Validacion/ validador contra los XSD del perfil y reporte de errores
 recursos/xsd/   esquemas del perfil 2.1: cabecera, agregados, extensiones y cada documento
 public/         punto de entrada HTTP

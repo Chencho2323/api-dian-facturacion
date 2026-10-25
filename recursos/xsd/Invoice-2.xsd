@@ -37,6 +37,7 @@
         <xs:element ref="cac:AccountingCustomerParty"/>
         <xs:element ref="cac:LegalMonetaryTotal"/>
         <xs:element ref="cac:TaxTotal"/>
+        <xs:element ref="cac:WithholdingTaxTotal" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="cac:InvoiceLine" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>

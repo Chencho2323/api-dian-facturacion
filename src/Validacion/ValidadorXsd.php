@@ -205,8 +205,10 @@ final class ValidadorXsd
             );
         }
 
-        // Falta un elemento obligatorio dentro de otro.
-        if (preg_match('/Missing child element\(s\)\. Expected is \(/', $mensaje) === 1) {
+        // Falta un elemento obligatorio dentro de otro. libxml lo dice de dos
+        // formas: "Expected is (X)" cuando solo cabe uno y "Expected is one
+        // of (X, Y)" cuando el esquema admite alternativas.
+        if (preg_match('/Missing child element\(s\)\. Expected is (?:one of )?\(/', $mensaje) === 1) {
             return sprintf(
                 'Falta un elemento obligatorio en %s. El esquema espera: %s.',
                 $this->sujeto($mensaje),

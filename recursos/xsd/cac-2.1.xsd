@@ -202,6 +202,7 @@
   <xs:element name="AccountingCustomerParty" type="ParteDelDocumento"/>
   <xs:element name="LegalMonetaryTotal" type="TotalMonetario"/>
   <xs:element name="TaxTotal" type="TotalDeImpuestos"/>
+  <xs:element name="WithholdingTaxTotal" type="TotalDeImpuestos"/>
   <xs:element name="Item" type="Item"/>
   <xs:element name="Price" type="Precio"/>
   <xs:element name="DiscrepancyResponse" type="RespuestaDeDiscrepancia"/>
