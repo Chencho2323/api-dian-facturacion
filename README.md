@@ -203,6 +203,62 @@ La capa HTTP vive en `public/index.php`:
 php -S localhost:8080 -t public
 ```
 
+## API REST
+
+El servicio expone cuatro operaciones. Los documentos emitidos se guardan en SQLite (por defecto
+`var/documentos.sqlite`, o la ruta de la variable `DIAN_BASEDATOS`).
+
+| Metodo | Ruta | Que hace |
+|---|---|---|
+| `GET` | `/` | Estado del servicio y modulos cargados |
+| `POST` | `/documentos` | Emite un documento y lo guarda |
+| `GET` | `/documentos` | Lista con filtros y paginacion |
+| `GET` | `/documentos/{numero}` | Consulta un documento con su XML |
+| `POST` | `/documentos/{numero}/anular` | Anula con un motivo, sin borrar |
+
+Emitir una factura:
+
+```bash
+curl -s -X POST http://localhost:8080/documentos \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "tipo": "factura",
+    "numero": "FV-0001",
+    "fecha": "2026-10-22 09:30:00",
+    "ambiente": "2",
+    "emisor": {"nit": "900123456", "razonSocial": "InheritDevs SAS", "regimen": "48"},
+    "adquirente": {"nit": "800987654", "razonSocial": "Almacen El Progreso SAS", "regimen": "49"},
+    "lineas": [
+      {"descripcion": "Servicio de desarrollo", "cantidad": 2, "precioUnitario": 12500000, "iva": 19}
+    ],
+    "resolucion": {
+      "numero": "18760000001", "prefijo": "FV", "desde": 1, "hasta": 5000,
+      "vigenciaDesde": "2026-01-01", "vigenciaHasta": "2027-01-01",
+      "claveTecnica": "clave-tecnica"
+    }
+  }'
+```
+
+Responde `201` con el documento, sus totales y el XML ya validado contra el esquema; la cabecera
+`Location` apunta a la consulta. Un numero repetido devuelve `409` y un dato mal armado `422` con
+el detalle por campo en `error.campos`. Consultar y anular:
+
+```bash
+curl -s http://localhost:8080/documentos/FV-0001
+curl -s -X POST http://localhost:8080/documentos/FV-0001/anular \
+  -H 'Content-Type: application/json' -d '{"motivo": "Error de digitacion"}'
+```
+
+El listado pagina con `limite` (20 por defecto, 100 maximo) y `desplazamiento`, y filtra por
+`tipo`, `estado` (`emitido`, `anulado`), `emisor`, `desde` y `hasta`:
+
+```bash
+curl -s 'http://localhost:8080/documentos?estado=emitido&limite=10'
+```
+
+Los precios se aceptan como numero o como texto: `1250000`, `1250000.00` y `"1.250.000,50"`
+terminan en el mismo valor en centavos.
+
 ## Pruebas
 
 ```bash
@@ -224,6 +280,8 @@ src/Sujeto/     registro de sujetos que resuelve emisor y adquirente por NIT
 src/Documento/  modelo del documento UBL 2.1: factura, nota credito y nota debito
 src/Calculo/    IVA, retenciones, redondeos y totales del documento
 src/Validacion/ validador contra los XSD del perfil y reporte de errores
+src/Emision/    registro SQLite, armado del documento desde JSON y casos de uso
+src/Http/       solicitud, respuesta, enrutador y armado de la aplicacion
 recursos/xsd/   esquemas del perfil 2.1: cabecera, agregados, extensiones y cada documento
 public/         punto de entrada HTTP
 tests/          pruebas automaticas (PHPUnit)

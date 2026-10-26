@@ -5,13 +5,13 @@ declare(strict_types=1);
 /**
  * Punto de entrada HTTP del servicio.
  *
- * Por ahora solo expone el estado del servicio: los endpoints de emision,
- * consulta, anulacion y listado se incorporan en la tarea que construye la
- * capa REST.
+ * Todas las rutas pasan por el enrutador: estado, emision, consulta,
+ * anulacion y listado. El servidor solo publica la respuesta que el enrutador
+ * devuelve.
  */
 
-use InheritDevs\Dian\Excepcion\RequisitoNoCumplido;
-use InheritDevs\Dian\Servicio;
+use InheritDevs\Dian\Http\Aplicacion;
+use InheritDevs\Dian\Http\Solicitud;
 
 $autoload = dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -19,7 +19,7 @@ if (!is_file($autoload)) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(
-        ['error' => 'Las dependencias del servicio no estan instaladas.'],
+        ['error' => ['codigo' => 'entorno', 'mensaje' => 'Las dependencias del servicio no estan instaladas.']],
         JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
     );
     exit;
@@ -27,20 +27,5 @@ if (!is_file($autoload)) {
 
 require $autoload;
 
-header('Content-Type: application/json; charset=utf-8');
-
-try {
-    $estado = Servicio::iniciar();
-} catch (RequisitoNoCumplido $excepcion) {
-    http_response_code(500);
-    echo json_encode(
-        ['error' => $excepcion->getMessage()],
-        JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-    );
-    exit;
-}
-
-echo json_encode(
-    ['servicio' => $estado['nombre'], 'version' => $estado['version']],
-    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
-);
+$respuesta = Aplicacion::enrutador()->atender(Solicitud::desdeGlobales());
+$respuesta->enviar();

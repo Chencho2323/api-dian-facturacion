@@ -27,6 +27,8 @@ final class Servicio
         'calculo',
         'validador-xsd',
         'sujetos',
+        'emision',
+        'api-rest',
     ];
 
     /**
