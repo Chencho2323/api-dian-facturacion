@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1">
+  <cac:UBLExtensions>
+    <cac:UBLExtension>
+      <cac:ExtensionContent>
+        <sts:DianExtensions>
+          <sts:InvoiceControl>
+            <sts:InvoiceAuthorization>18760000001</sts:InvoiceAuthorization>
+            <sts:AuthorizationPeriod>
+              <cbc:StartDate>2026-01-01</cbc:StartDate>
+              <cbc:EndDate>2027-01-01</cbc:EndDate>
+            </sts:AuthorizationPeriod>
+            <sts:AuthorizedInvoices>
+              <sts:Prefix>FV</sts:Prefix>
+              <sts:From>1</sts:From>
+              <sts:To>5000</sts:To>
+            </sts:AuthorizedInvoices>
+          </sts:InvoiceControl>
+          <sts:UUID>3AFC174F4C17FB2C4F85B3CF5B8ECFEADB2B39AF3C0C53B49273F4F30E1DBE44</sts:UUID>
+        </sts:DianExtensions>
+      </cac:ExtensionContent>
+    </cac:UBLExtension>
+  </cac:UBLExtensions>
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  <cbc:CustomizationID>10</cbc:CustomizationID>
+  <cbc:ProfileID>2.0</cbc:ProfileID>
+  <cbc:ProfileExecutionID>1</cbc:ProfileExecutionID>
+  <cbc:ID>FV-0001</cbc:ID>
+  <cbc:UUID>3AFC174F4C17FB2C4F85B3CF5B8ECFEADB2B39AF3C0C53B49273F4F30E1DBE44</cbc:UUID>
+  <cbc:IssueDate>2026-10-22</cbc:IssueDate>
+  <cbc:IssueTime>09:30:00+00:00</cbc:IssueTime>
+  <cbc:DocumentCurrencyCode>COP</cbc:DocumentCurrencyCode>
+  <cbc:LineCountNumeric>2</cbc:LineCountNumeric>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="31" schemeName="NIT">900123456</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>InheritDevs SAS</cbc:Name>
+      </cac:PartyName>
+      <cbc:RegistrationName>InheritDevs SAS</cbc:RegistrationName>
+      <cac:PartyTaxScheme>
+        <cac:TaxScheme>
+          <cbc:ID>48</cbc:ID>
+          <cbc:Name>Responsable de IVA</cbc:Name>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PhysicalLocation>
+        <cac:Address>
+          <cbc:StreetName></cbc:StreetName>
+          <cbc:CityName></cbc:CityName>
+          <cbc:CountrySubentity></cbc:CountrySubentity>
+        </cac:Address>
+      </cac:PhysicalLocation>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="31" schemeName="NIT">800987654</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyName>
+        <cbc:Name>Almacen El Progreso SAS</cbc:Name>
+      </cac:PartyName>
+      <cbc:RegistrationName>Almacen El Progreso SAS</cbc:RegistrationName>
+      <cac:PartyTaxScheme>
+        <cac:TaxScheme>
+          <cbc:ID>49</cbc:ID>
+          <cbc:Name>No responsable de IVA</cbc:Name>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PhysicalLocation>
+        <cac:Address>
+          <cbc:StreetName></cbc:StreetName>
+          <cbc:CityName></cbc:CityName>
+          <cbc:CountrySubentity></cbc:CountrySubentity>
+        </cac:Address>
+      </cac:PhysicalLocation>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="COP">290000.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="COP">290000.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="COP">339500.00</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="COP">339500.00</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="COP">49500.00</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="COP">40000.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="COP">2000.00</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:Percent>5</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>01</cbc:ID>
+          <cbc:Name>IVA</cbc:Name>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="COP">250000.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:Percent>19</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>01</cbc:ID>
+          <cbc:Name>IVA</cbc:Name>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:InvoiceLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="94">2</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="COP">250000.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="COP">250000.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:Percent>19</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>01</cbc:ID>
+            <cbc:Name>IVA</cbc:Name>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Description>Servicio de desarrollo</cbc:Description>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="COP">125000.00</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+  <cac:InvoiceLine>
+    <cbc:ID>2</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="MON">1</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="COP">40000.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="COP">2000.00</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="COP">40000.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="COP">2000.00</cbc:TaxAmount>
+        <cac:TaxCategory>
+          <cbc:Percent>5</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>01</cbc:ID>
+            <cbc:Name>IVA</cbc:Name>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Description>Soporte mensual</cbc:Description>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="COP">40000.00</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>
+</Invoice>

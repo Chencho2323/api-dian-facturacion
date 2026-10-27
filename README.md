@@ -1,6 +1,6 @@
 # API de facturacion electronica ante la DIAN
 
-Servicio REST que arma documentos UBL 2.1, los valida contra el XSD de la DIAN, los firma y expone el estado del envio. Incluye resolucion de sujeto por NIT y calcula IVA e IVA retenido.
+Servicio REST que arma documentos UBL 2.1, los valida contra los esquemas de la DIAN y guarda cada documento emitido con su XML y su estado. Incluye resolucion de sujeto por NIT y calcula IVA, retenciones y totales.
 
 ![CI](https://github.com/Chencho2323/api-dian-facturacion/actions/workflows/ci.yml/badge.svg)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-03A8FA?style=flat-square)
@@ -17,6 +17,13 @@ produccion. El codigo esta aqui para que se pueda leer, ejecutar y auditar.
 - Pruebas que corren en cada push (`npm test`, `phpunit` o `pytest`, segun el
   stack) y en cada pull request.
 - Sin dependencias ocultas: lo que dice el README es lo que hace falta.
+- Los ejemplos de este archivo se ejecutan en la suite: si el README se desactualiza, las pruebas fallan.
+
+## Alcance
+
+El servicio arma el documento, lo valida contra el XSD del perfil y lo guarda con el XML original
+para que se pueda auditar despues. La firma XAdES, el calculo del CUFE y el envio al servicio web
+de la DIAN no estan en este repositorio: el documento sale listo para firmar.
 
 ## Instalacion
 
@@ -40,25 +47,29 @@ use InheritDevs\Dian\Documento\Resolucion;
 use InheritDevs\Dian\Documento\Tercero;
 use InheritDevs\Dian\Documento\TipoDocumento;
 
+$emisor = new Tercero('900123456', 'InheritDevs SAS', '48');
+$adquirente = new Tercero('800987654', 'Almacen El Progreso SAS', '49');
+$resolucion = new Resolucion(
+    '18760000001',
+    'FV',
+    1,
+    5000,
+    new DateTimeImmutable('2026-01-01'),
+    new DateTimeImmutable('2027-01-01'),
+    'clave-tecnica'
+);
+
 $documento = new DocumentoUbl(
     TipoDocumento::Factura,
     'FV-0001',
     new DateTimeImmutable('2026-10-22 09:30:00'),
-    new Tercero('900123456', 'InheritDevs SAS', '48'),
-    new Tercero('800987654', 'Almacen El Progreso SAS', '49'),
+    $emisor,
+    $adquirente,
     [
         new Linea('Servicio de desarrollo', 2, 12500000, 19),
         new Linea('Soporte mensual', 1, 4000000, 5, 'MON'),
     ],
-    new Resolucion(
-        '18760000001',
-        'FV',
-        1,
-        5000,
-        new DateTimeImmutable('2026-01-01'),
-        new DateTimeImmutable('2027-01-01'),
-        'clave-tecnica'
-    )
+    $resolucion
 );
 
 file_put_contents('factura.xml', $documento->xml());
@@ -103,6 +114,8 @@ $nit = Nit::desde('900.123.456');      // tambien acepta '900123456-8'
 echo $nit->formateado();               // 900.123.456-8
 
 echo CatalogoRegimenes::obtener('04')->nombre();  // Regimen simple de tributacion
+
+$cliente = new Tercero('800987654', 'Almacen El Progreso SAS', '49');
 
 $registro = RegistroSujetos::vacio()
     ->agregar($emisor)
@@ -168,7 +181,7 @@ retenciones que superan el total se rechazan con `DocumentoInvalido`.
 
 ## Validacion contra el esquema
 
-Antes de firmar, el documento se valida contra los XSD del perfil 2.1, que viven en
+Antes de guardar, el documento se valida contra los XSD del perfil 2.1, que viven en
 `recursos/xsd`. El resultado trae los errores ya traducidos, con la linea, el elemento y que
 esperaba el esquema:
 
@@ -191,21 +204,21 @@ El resultado se puede entregar tal cual en la respuesta HTTP: `valido`, `resumen
 `errores` con su `linea`, `columna`, `codigo` y `mensaje`.
 
 Ademas el servicio expone su estado y comprueba que la maquina cumple con los requisitos minimos
-para facturar:
+para atender peticiones:
 
 ```bash
 php -r "require 'vendor/autoload.php'; var_export(InheritDevs\Dian\Servicio::iniciar());"
 ```
 
-La capa HTTP vive en `public/index.php`:
+La capa HTTP vive en `public/index.php`, que atiende todas las rutas desde el mismo archivo:
 
 ```bash
-php -S localhost:8080 -t public
+php -S localhost:8080 -t public public/index.php
 ```
 
 ## API REST
 
-El servicio expone cuatro operaciones. Los documentos emitidos se guardan en SQLite (por defecto
+El servicio expone cinco operaciones. Los documentos emitidos se guardan en SQLite (por defecto
 `var/documentos.sqlite`, o la ruta de la variable `DIAN_BASEDATOS`).
 
 | Metodo | Ruta | Que hace |
@@ -269,6 +282,16 @@ O, con el binario de Composer ya instalado:
 
 ```bash
 vendor/bin/phpunit
+```
+
+La suite cubre el modelo UBL, el validador contra el XSD, el catalogo de regimenes, el calculo de
+totales, los endpoints y la documentacion: `tests/ReadmeTest.php` ejecuta los bloques de codigo de
+este archivo y emite el documento del `curl` de ejemplo, asi que un cambio en la API que deje el
+README viejo se ve como una prueba en rojo. Para correr lo mismo que el CI, con la sintaxis
+revisada antes:
+
+```bash
+./verificar.sh
 ```
 
 ## Estructura
